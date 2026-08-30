@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Briefcase, CheckCircle, XCircle, Clock, ArrowUpRight, Trash2, X, Edit3, MessageSquare } from 'lucide-react';
+import { Send, Trash2, X, Edit3, Zap, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { applicationsAPI } from '../services/api';
 
 const COLUMNS = [
@@ -12,15 +12,24 @@ const COLUMNS = [
 
 function Toast({ msg, type, onClose }) {
     useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
-    return <div className={`toast toast-${type}`}>{msg}<button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', marginLeft: 8 }}><X size={14} /></button></div>;
+    return (
+        <div className={`toast toast-${type}`}>
+            {msg}
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', marginLeft: 8 }}>
+                <X size={14} />
+            </button>
+        </div>
+    );
 }
 
 function EditModal({ app, onClose, onSaved }) {
     const [form, setForm] = useState({
         status: app.status, notes: app.notes || '', contactName: app.contactName || '',
-        contactEmail: app.contactEmail || '', nextStep: app.nextStep || ''
+        contactEmail: app.contactEmail || '', nextStep: app.nextStep || '',
+        coverLetter: app.coverLetter || ''
     });
     const [saving, setSaving] = useState(false);
+    const [showCoverLetter, setShowCoverLetter] = useState(false);
 
     const save = async () => {
         setSaving(true);
@@ -32,14 +41,22 @@ function EditModal({ app, onClose, onSaved }) {
 
     return (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-            <div className="modal">
+            <div className="modal" style={{ maxWidth: 560 }}>
                 <div className="modal-header">
                     <div>
-                        <div className="modal-title">{app.job.title}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="modal-title">{app.job.title}</div>
+                            {app.aiGenerated && (
+                                <span style={{ background: 'rgba(79,142,247,0.15)', color: 'var(--accent-blue)', padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <Zap size={10} /> AI Applied
+                                </span>
+                            )}
+                        </div>
                         <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{app.job.company}</div>
                     </div>
                     <button className="btn btn-ghost btn-icon-only" onClick={onClose}><X size={18} /></button>
                 </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div className="form-group">
                         <label className="form-label">Status</label>
@@ -66,8 +83,34 @@ function EditModal({ app, onClose, onSaved }) {
                     <div className="form-group">
                         <label className="form-label">Notes</label>
                         <textarea className="form-textarea" placeholder="Any notes about this application…" value={form.notes}
-                            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ minHeight: 80 }} />
+                            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ minHeight: 70 }} />
                     </div>
+
+                    {/* Cover Letter Section */}
+                    {(app.aiGenerated || form.coverLetter) && (
+                        <div style={{ border: '1px solid var(--border-default)', borderRadius: 10, overflow: 'hidden' }}>
+                            <button
+                                type="button"
+                                onClick={() => setShowCoverLetter(v => !v)}
+                                style={{ width: '100%', background: 'rgba(79,142,247,0.06)', border: 'none', padding: '10px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}
+                            >
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 600 }}>
+                                    <FileText size={14} style={{ color: 'var(--accent-blue)' }} /> Cover Letter
+                                    {app.aiGenerated && <span style={{ fontSize: 11, color: 'var(--accent-blue)' }}>⚡ AI-generated</span>}
+                                </span>
+                                {showCoverLetter ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                            </button>
+                            {showCoverLetter && (
+                                <textarea
+                                    className="form-textarea"
+                                    value={form.coverLetter}
+                                    onChange={e => setForm(f => ({ ...f, coverLetter: e.target.value }))}
+                                    style={{ minHeight: 200, borderRadius: 0, border: 'none', borderTop: '1px solid var(--border-default)', fontSize: 12, lineHeight: 1.7 }}
+                                />
+                            )}
+                        </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: 10 }}>
                         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
                         <button className="btn btn-primary" style={{ flex: 1 }} onClick={save} disabled={saving}>
@@ -112,6 +155,7 @@ export default function Applications() {
     }, {});
 
     const total = apps.length;
+    const aiCount = apps.filter(a => a.aiGenerated).length;
 
     return (
         <div className="animate-fade">
@@ -120,7 +164,10 @@ export default function Applications() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Applications</h1>
-                    <p className="page-subtitle">{total} application{total !== 1 ? 's' : ''} tracked</p>
+                    <p className="page-subtitle">
+                        {total} application{total !== 1 ? 's' : ''} tracked
+                        {aiCount > 0 && <span style={{ marginLeft: 8, color: 'var(--accent-blue)', fontWeight: 600 }}>⚡ {aiCount} AI-applied</span>}
+                    </p>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     {['kanban', 'list'].map(v => (
@@ -141,6 +188,12 @@ export default function Applications() {
                             <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{col.label}</span>
                         </div>
                     ))}
+                    {aiCount > 0 && (
+                        <div style={{ background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: 10, padding: '8px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--accent-blue)' }}>{aiCount}</span>
+                            <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><Zap size={12} style={{ color: 'var(--accent-blue)' }} /> AI Applied</span>
+                        </div>
+                    )}
                 </div>
 
                 {loading ? (
@@ -161,7 +214,14 @@ export default function Applications() {
                                 </div>
                                 {grouped[col.key]?.map(app => (
                                     <div key={app._id} className="kanban-card" onClick={() => setEditApp(app)}>
-                                        <div className="kanban-card-title">{app.job.title}</div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div className="kanban-card-title" style={{ flex: 1 }}>{app.job.title}</div>
+                                            {app.aiGenerated && (
+                                                <span title="AI Auto-Applied" style={{ color: 'var(--accent-blue)', flexShrink: 0, marginLeft: 6 }}>
+                                                    <Zap size={12} />
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="kanban-card-company">{app.job.company}</div>
                                         {app.nextStep && <div style={{ fontSize: 11, color: 'var(--accent-yellow)', marginTop: 5 }}>→ {app.nextStep}</div>}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
@@ -196,7 +256,12 @@ export default function Applications() {
                                         <tr key={app._id} style={{ borderBottom: i < apps.length - 1 ? '1px solid var(--border-default)' : 'none' }}
                                             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                            <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: 13 }}>{app.job.title}</td>
+                                            <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: 13 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    {app.job.title}
+                                                    {app.aiGenerated && <Zap size={12} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} title="AI Auto-Applied" />}
+                                                </div>
+                                            </td>
                                             <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{app.job.company}</td>
                                             <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)' }}>{app.job.location}</td>
                                             <td style={{ padding: '12px 16px' }}>

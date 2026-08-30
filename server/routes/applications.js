@@ -52,7 +52,7 @@ router.get('/:id', protect, async (req, res) => {
 // @route POST /api/applications
 router.post('/', protect, async (req, res) => {
     try {
-        const { job, notes, contactName, contactEmail } = req.body;
+        const { job, notes, contactName, contactEmail, coverLetter, aiGenerated } = req.body;
         if (!job || !job.title || !job.company) {
             return res.status(400).json({ success: false, message: 'Job title and company are required' });
         }
@@ -63,7 +63,9 @@ router.post('/', protect, async (req, res) => {
             notes,
             contactName,
             contactEmail,
-            timeline: [{ status: 'applied', date: new Date(), note: 'Application submitted' }]
+            coverLetter: coverLetter || '',
+            aiGenerated: aiGenerated || false,
+            timeline: [{ status: 'applied', date: new Date(), note: aiGenerated ? 'AI Auto-Applied' : 'Application submitted' }]
         });
 
         res.status(201).json({ success: true, application });

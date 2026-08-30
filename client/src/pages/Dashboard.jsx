@@ -20,11 +20,14 @@ export default function Dashboard() {
     const [stats, setStats] = useState({});
     const [recent, setRecent] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [aiCount, setAiCount] = useState(0);
 
     useEffect(() => {
-        applicationsAPI.list({ limit: 5 }).then(res => {
+        applicationsAPI.list({ limit: 100 }).then(res => {
             setStats(res.data.stats || {});
-            setRecent(res.data.applications || []);
+            const allApps = res.data.applications || [];
+            setRecent(allApps.slice(0, 5));
+            setAiCount(allApps.filter(a => a.aiGenerated).length);
         }).finally(() => setLoading(false));
     }, []);
 
@@ -38,6 +41,7 @@ export default function Dashboard() {
 
     const statCards = [
         { label: 'Total Applied', value: total, icon: Send, color: 'blue' },
+        { label: 'AI Applied', value: aiCount, icon: Zap, color: 'blue' },
         { label: 'Interviews', value: stats.interview || 0, icon: Activity, color: 'yellow' },
         { label: 'Offers', value: stats.offer || 0, icon: Trophy, color: 'green' },
         { label: 'Rejected', value: stats.rejected || 0, icon: XCircle, color: 'red' },

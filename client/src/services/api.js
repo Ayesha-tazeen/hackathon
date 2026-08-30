@@ -64,7 +64,9 @@ export const applicationsAPI = {
 // ─── AI ───
 export const aiAPI = {
     detectRole: (text) => api.post('/ai/detect-role', { text }),
-    formFill: (profile, fields) => api.post('/ai/form-fill', { profile, fields })
+    formFill: (profile, fields) => api.post('/ai/form-fill', { profile, fields }),
+    generateCoverLetter: (profile, job) => api.post('/ai/generate-cover-letter', { profile, job }),
+    autoApply: (profile, job) => api.post('/ai/auto-apply', { profile, job }),
 };
 
 export default api;

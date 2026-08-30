@@ -25,6 +25,8 @@ const ApplicationSchema = new mongoose.Schema({
     contactName: { type: String, default: '' },
     contactEmail: { type: String, default: '' },
     nextStep: { type: String, default: '' },
+    coverLetter: { type: String, default: '' },
+    aiGenerated: { type: Boolean, default: false },
     timeline: [{
         status: String,
         date: { type: Date, default: Date.now },
