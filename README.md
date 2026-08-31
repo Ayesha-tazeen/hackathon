@@ -3,7 +3,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## 🚀 Project Overview
+##  Project Overview
 
 **AutoApply** is a full-stack web application that allows users to create a **single universal job profile** and automatically apply to multiple companies’ job listings. The platform uses AI to:
 
@@ -15,7 +15,7 @@ It integrates with job APIs like **Adzuna** for live listings, and falls back to
 
 ---
 
-## 📌 Features
+##  Features
 
 ### User Features
 - Sign up / login with JWT authentication
@@ -38,7 +38,7 @@ It integrates with job APIs like **Adzuna** for live listings, and falls back to
 
 ---
 
-## 🏗️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|------------|
